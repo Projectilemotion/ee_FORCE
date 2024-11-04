@@ -3,7 +3,6 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/addons/p5.sound.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8" />
     <style>
         html, body {
@@ -22,7 +21,7 @@
         let angleSlider, velocitySlider, heightSlider, forceSlider;
         let ball;
         const g = 9.81;
-        const startX = 50, startY = 550;
+        let startX = 100, startY;  // Set startY dynamically based on canvas height
         let previousAngle, previousVelocity, previousHeight, previousForce;
         let timeOfFlight, maxHeight, range;
         let trajectoryPoints = [];
@@ -32,11 +31,12 @@
         function setup() {
             createCanvas(windowWidth, windowHeight);
 
+            startY = height - 50;  // Position x-axis near the bottom of the screen
+
             for (let i = 0; i < 100; i++) {
                 stars.push({ x: random(width), y: random(height / 2) });
             }
 
-            // Position sliders near the right edge
             angleSlider = createSlider(0, 90, 45);
             velocitySlider = createSlider(0, 100, 50);
             heightSlider = createSlider(0, 300, 100);
@@ -65,7 +65,7 @@
         function initializeBall() {
             ball = {
                 x: startX,
-                y: height - heightSlider.value(),
+                y: startY - heightSlider.value(),
                 vx: 0,
                 vy: 0,
                 ax: 0,
@@ -112,7 +112,7 @@
             text(`Max Height: ${maxHeight.toFixed(2)} m`, width - 160, 245 + gap);
             text(`Range: ${range.toFixed(2)} m`, width - 160, 265 + gap);
 
-            if (!isMoving && ball.x === startX && ball.y === (height - heightSlider.value())) {
+            if (!isMoving && ball.x === startX && ball.y === (startY - heightSlider.value())) {
                 ball.vx = velocity * cos(angle);
                 ball.vy = -velocity * sin(angle);
                 isMoving = true;
@@ -132,13 +132,13 @@
 
                 ball.y += ball.vy * 0.1;
 
-                let colorValue = map(ball.y, height, height - maxHeight, 0, 255);
+                let colorValue = map(ball.y, startY, startY - maxHeight, 0, 255);
                 fill(colorValue, 100, 255 - colorValue);
                 stroke(0);
                 ellipse(ball.x, ball.y, 20, 20);
 
-                if (ball.y > height) {
-                    ball.y = height;
+                if (ball.y > startY) {
+                    ball.y = startY;
                     ball.vx = 0;
                     ball.vy = 0;
                     isMoving = false;
@@ -156,11 +156,11 @@
 
         function drawAxes() {
             stroke(255);
-            line(0, height, width, height);
-            line(startX, 0, startX, height);
+            line(0, startY, width, startY); // X-axis near bottom
+            line(startX, 0, startX, height); // Y-axis on left side
             fill(255);
-            text('X', width - 20, height - 10);
-            text('Y', startX - 20, 20);
+            text('X', width - 20, startY - 10); // X-axis label
+            text('Y', startX - 20, 20); // Y-axis label
         }
 
         function drawStars() {
@@ -173,6 +173,7 @@
 
         function windowResized() {
             resizeCanvas(windowWidth, windowHeight);
+            startY = height - 50;  // Update startY when resizing
             positionSliders();
         }
     </script>
