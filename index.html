@@ -9,6 +9,7 @@
         html, body {
             margin: 0;
             padding: 0;
+            overflow: hidden; /* Prevents scrollbars */
         }
         canvas {
             display: block;
@@ -16,8 +17,7 @@
     </style>
 </head>
 <body>
-    <main>
-    </main>
+    <main></main>
     <script>
         let angleSlider, velocitySlider, heightSlider, forceSlider;
         let ball;
@@ -32,23 +32,17 @@
         function setup() {
             createCanvas(windowWidth, windowHeight);
 
-            // Generate stars for the background
             for (let i = 0; i < 100; i++) {
                 stars.push({ x: random(width), y: random(height / 2) });
             }
 
-            // Create sliders
+            // Position sliders near the right edge
             angleSlider = createSlider(0, 90, 45);
-            angleSlider.position(width - 180, 50);
-
             velocitySlider = createSlider(0, 100, 50);
-            velocitySlider.position(width - 180, 100);
-
             heightSlider = createSlider(0, 300, 100);
-            heightSlider.position(width - 180, 150);
-
             forceSlider = createSlider(-100, 100, 0);
-            forceSlider.position(width - 180, 200);
+
+            positionSliders();
 
             initializeBall();
 
@@ -60,10 +54,18 @@
             calculateTrajectory();
         }
 
+        function positionSliders() {
+            let xOffset = width - 200;
+            angleSlider.position(xOffset, 50);
+            velocitySlider.position(xOffset, 100);
+            heightSlider.position(xOffset, 150);
+            forceSlider.position(xOffset, 200);
+        }
+
         function initializeBall() {
             ball = {
                 x: startX,
-                y: startY - heightSlider.value(),
+                y: height - heightSlider.value(),
                 vx: 0,
                 vy: 0,
                 ax: 0,
@@ -90,7 +92,6 @@
             let angle = radians(angleSlider.value());
             let velocity = velocitySlider.value();
 
-            // Check if slider values changed to recalculate trajectory
             if (angleSlider.value() !== previousAngle || velocitySlider.value() !== previousVelocity || heightSlider.value() !== previousHeight || forceSlider.value() !== previousForce) {
                 initializeBall();
                 previousAngle = angleSlider.value();
@@ -111,7 +112,7 @@
             text(`Max Height: ${maxHeight.toFixed(2)} m`, width - 160, 245 + gap);
             text(`Range: ${range.toFixed(2)} m`, width - 160, 265 + gap);
 
-            if (!isMoving && ball.x === startX && ball.y === (startY - heightSlider.value())) {
+            if (!isMoving && ball.x === startX && ball.y === (height - heightSlider.value())) {
                 ball.vx = velocity * cos(angle);
                 ball.vy = -velocity * sin(angle);
                 isMoving = true;
@@ -121,7 +122,6 @@
                 trajectoryPoints.push({ x: ball.x, y: ball.y });
                 ball.x += ball.vx * 0.1;
 
-                // Apply additional force
                 let additionalForce = forceSlider.value();
                 let forceDirection = angle;
                 let forceX = additionalForce * cos(forceDirection) * 0.1;
@@ -132,21 +132,19 @@
 
                 ball.y += ball.vy * 0.1;
 
-                let colorValue = map(ball.y, startY, startY - maxHeight, 0, 255);
+                let colorValue = map(ball.y, height, height - maxHeight, 0, 255);
                 fill(colorValue, 100, 255 - colorValue);
                 stroke(0);
                 ellipse(ball.x, ball.y, 20, 20);
 
-                // Stop ball if it reaches the ground
-                if (ball.y > startY) {
-                    ball.y = startY;
+                if (ball.y > height) {
+                    ball.y = height;
                     ball.vx = 0;
                     ball.vy = 0;
                     isMoving = false;
                 }
             }
 
-            // Draw trajectory path
             noFill();
             stroke(150);
             beginShape();
@@ -158,10 +156,10 @@
 
         function drawAxes() {
             stroke(255);
-            line(0, startY, width, startY);
+            line(0, height, width, height);
             line(startX, 0, startX, height);
             fill(255);
-            text('X', width - 20, startY - 10);
+            text('X', width - 20, height - 10);
             text('Y', startX - 20, 20);
         }
 
@@ -171,6 +169,11 @@
             for (let star of stars) {
                 ellipse(star.x, star.y, 2, 2);
             }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            positionSliders();
         }
     </script>
 </body>
